@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Word Jumble Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .word {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+        .clue {
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        .score, .time {
+            font-size: 1.2rem;
+            margin: 0.5rem;
+        }
+        .feedback {
+            font-weight: bold;
+            color: #d9534f;
+            margin-top: 1rem;
+        }
+        .play-button, .submit-guess {
+            padding: 0.5rem 1.5rem;
+            margin: 1rem 0.5rem;
+            border: none;
+            border-radius: 6px;
+            background: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .play-button:hover, .submit-guess:hover {
+            background: #0056b3;
+        }
+        .guess-input {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Word Jumble Game</h1>
+        <div class="clue"></div>
+        <div class="word"></div>
+        <input type="text" class="guess-input" placeholder="Your guess..." />
+        <button class="submit-guess">Submit</button>
+        <div>
+            <span class="score">Score: 0</span>
+            <span class="time">30</span>
+        </div>
+        <div class="feedback"></div>
+        <button class="play-button">Play</button>
+    </div>
+    <script>
+        const wordElement = document.querySelector('.word');
+        const scoreElement = document.querySelector('.score');
+        const timeElement = document.querySelector('.time');
+        const playButton = document.querySelector('.play-button');
+        const submitGuessButton = document.querySelector('.submit-guess');
+        const guessInput = document.querySelector('.guess-input');
+        const feedback = document.querySelector('.feedback');
+
+        const words = [
+            { word: "javascript", clue: "Popular programming language for the web" },
+            { word: "python", clue: "Snake and a powerful programming language" },
+            { word: "react", clue: "A JavaScript library for building user interfaces" },
+            { word: "variable", clue: "Used to store data in programming" },
+            { word: "function", clue: "Reusable block of code" },
+            { word: "chicken", clue: "A common farm animal" },
+            { word: "elephant", clue: "The largest land animal" },
+            { word: "giraffe", clue: "Known for its long neck" },
+            { word: "dolphin", clue: "Intelligent marine mammal" },
+            { word: "kangaroo", clue: "Native to Australia, hops on two legs" },
+            { word: "computer", clue: "An electronic device for processing data" },
+            { word: "keyboard", clue: "Input device for typing" },
+            { word: "mouse", clue: "Pointing device for computers" },
+            { word: "monitor", clue: "Screen for displaying computer output" },
+            { word: "internet", clue: "Global network connecting millions of computers" },
+            { word: "anime", clue: "Japanese style of animation" },
+            { word: "manga", clue: "Japanese comic books or graphic novels" },
+            { word: "kawaii", clue: "Japanese term for cute" },
+            { word: "amaterasu", clue: "Shinto goddess of the sun" },
+            { word: "string", clue: "A sequence of characters" },
+            { word: "array", clue: "A collection of items stored at contiguous memory locations" },
+            { word: "object", clue: "An instance of a class in programming" },
+            { word: "loop", clue: "A control structure for repeating code" },
+            { word: "condition", clue: "A statement that controls the flow of execution" }
+        ];
+
+        let currentWordObj = {};
+        let score = 0;
+        let timeLeft = 30; // Increased time for more challenge
+        let timer = null;
+        let gameActive = false;
+        let wrongGuesses = 0;
+        let roundsPlayed = 0;
+        const totalRounds = 24; // Total number of words available
+        const passingScore = 21; // Score needed to pass the game
+        const maxWrongGuesses = 3; // Maximum wrong guesses allowed
+        function jumble(word) {
+            return word.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function pickWord() {
+            return words[Math.floor(Math.random() * words.length)];
+        }
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30; // Reset time for new game
+            gameActive = true;
+            wrongGuesses = 0;
+            currentWordObj = pickWord();
+            wordElement.textContent = jumble(currentWordObj.word);
+            document.querySelector('.clue').textContent = "Clue: " + currentWordObj.clue;
+            scoreElement.textContent = "Score: " + score;
+            timeElement.textContent = timeLeft;
+            feedback.textContent = "";
+            guessInput.value = "";
+            guessInput.disabled = false;
+            submitGuessButton.disabled = false;
+
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timeElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            gameActive = false;
+            guessInput.disabled = true;
+            submitGuessButton.disabled = true;
+            feedback.textContent = "Game Over! Your score: " + score;
+        }
+
+        submitGuessButton.addEventListener('click', () => {
+            if (!gameActive) return;
+            const guess = guessInput.value.trim().toLowerCase();
+            if (guess === currentWordObj.word) {
+                score += 1;
+                scoreElement.textContent = "Score: " + score;
+                feedback.textContent = "Correct! 🎉";
+                // Pick a new word for next round
+                currentWordObj = pickWord();
+                wordElement.textContent = jumble(currentWordObj.word);
+                document.querySelector('.clue').textContent = "Clue: " + currentWordObj.clue;
+                guessInput.value = "";
+                wrongGuesses = 0; // Reset wrong guesses
+            } else {
+                wrongGuesses += 1;
+                if (wrongGuesses >= 3) {
+                    feedback.textContent = "Too many wrong guesses! Game Over.";
+                    endGame();
+                } else {
+                    feedback.textContent = "Incorrect! Try again. Wrong guesses: " + wrongGuesses;
+                }
+                guessInput.value = "";
+            }
+        });
+
+        playButton.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
