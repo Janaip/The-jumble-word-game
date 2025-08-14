@@ -72,7 +72,7 @@
         </div>
         <div class="feedback"></div>
         <button class="play-button">Play</button>
-    </div>
+        <button class="play-again-button" style="display:none;">Play Again</button>
     <script>
         const wordElement = document.querySelector('.word');
         const scoreElement = document.querySelector('.score');
@@ -81,6 +81,7 @@
         const submitGuessButton = document.querySelector('.submit-guess');
         const guessInput = document.querySelector('.guess-input');
         const feedback = document.querySelector('.feedback');
+        const playAgainButton = document.querySelector('.play-again-button');
 
         const words = [
             { word: "javascript", clue: "Popular programming language for the web" },
@@ -111,7 +112,7 @@
 
         let currentWordObj = {};
         let score = 0;
-        let timeLeft = 30; // Increased time for more challenge
+        let timeLeft = 120; // Increased time for more challenge
         let timer = null;
         let gameActive = false;
         let wrongGuesses = 0;
@@ -129,7 +130,7 @@
 
         function startGame() {
             score = 0;
-            timeLeft = 30; // Reset time for new game
+            timeLeft = 120; // Reset time for new game
             gameActive = true;
             wrongGuesses = 0;
             currentWordObj = pickWord();
@@ -141,6 +142,7 @@
             guessInput.value = "";
             guessInput.disabled = false;
             submitGuessButton.disabled = false;
+            playAgainButton.style.display = 'none'; // hide play again button
 
             if (timer) clearInterval(timer);
             timer = setInterval(() => {
@@ -157,9 +159,20 @@
             gameActive = false;
             guessInput.disabled = true;
             submitGuessButton.disabled = true;
-            feedback.textContent = "Game Over! Your score: " + score;
+            playAgainButton.style.display = 'inline-block'; // display play again button
+            
+            if (score >= passingScore) {
+                feedback.textContent = `Congratulations! You scored ${score} points and passed the game! 🎉`;
+            } else if (wrongGuesses >= maxWrongGuesses) {
+                feedback.textContent = `Game Over! You made too many wrong guesses. Your score: ${score}.`;
+            } else if (timeLeft <= 0) {
+                feedback.textContent = `Time's up! Your score: ${score}. Try again!`;
+            } else if (roundsPlayed >= totalRounds) {
+                feedback.textContent = `Game Over! You played ${roundsPlayed} rounds. Your score: ${score}.`;
+            } else {
+                feedback.textContent = `Game Over! Your score: ${score}. Try again!`;
+            }
         }
-
         submitGuessButton.addEventListener('click', () => {
             if (!gameActive) return;
             const guess = guessInput.value.trim().toLowerCase();
@@ -167,6 +180,12 @@
                 score += 1;
                 scoreElement.textContent = "Score: " + score;
                 feedback.textContent = "Correct! 🎉";
+                roundsPlayed += 1;
+                if (roundsPlayed >= totalRounds) {
+                    endGame();
+                    return;
+                }
+
                 // Pick a new word for next round
                 currentWordObj = pickWord();
                 wordElement.textContent = jumble(currentWordObj.word);
@@ -186,6 +205,12 @@
         });
 
         playButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', () => {
+            roundsPlayed = 0; // Reset rounds played
+            startGame();
+            playAgainButton.style.display = 'none'; // Hide play again button
+            feedback.style.color = "#d9534f"; // Reset color
+        });
     </script>
 </body>
 </html>
